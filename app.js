@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 
 const route = require('./routes');
+const sequelize = require('./util/database');
 
 const app = express();
 const port = 5000;
@@ -14,6 +15,16 @@ app.use(cors());
 
 route(app);
 
-app.listen(port, ()=> {
-  console.log(`Server is running on port ${port}`);
-})
+sequelize
+  // .sync({force: true})
+  .sync()
+  .then(result => {
+    // console.log(result);
+    app.listen(port, ()=> {
+      console.log(`Server is running on port ${port}`);
+    });
+  })
+  .catch(err => {
+    console.log(err);
+  });
+
