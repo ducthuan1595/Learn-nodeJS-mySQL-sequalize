@@ -50,12 +50,13 @@ class ProductController {
     const price = req.body.price;
     const imageUrl = req.body.imageUrl;
     const description = req.body.description;
-    Product.create({
+    req.user.createProduct({
       title: title,
       price: price,
       imageUrl: imageUrl,
       description: description
-    }).then(result => {
+    })
+    .then(result => {
       // console.log('add-product', result);
       res.status(200).json({
         message: 'ok'
@@ -81,7 +82,46 @@ class ProductController {
       .catch(err => {
         res.status(400).json({message: 'Delete failure'})
       })
-  }
+  };
+
+  getEditProduct(req, res) {
+    const productId = req.params.id;
+    req.user.getProducts({ where: { id: productId } })
+      .then(products => {
+        const product = products[0];
+        if(!product) {
+          return res.status(200).json({ message: 'Not found product', errCode: 1 })
+        }
+        return res.status(200).json({
+          product: product,
+          message: 'ok'
+        })
+      })
+      .catch(err => {
+        res.status(400).json({ message: err, errCode: -1 })
+      });
+  };
+
+  editProduct(req, res) {
+    const productId = req.params.id;
+    const title = req.body.title;
+    const price = req.body.price;
+    const imageUrl = req.body.imageUrl;
+    const description = req.body.description;
+    console.log('post-edit', productId)
+    Product.findByPk(productId)
+      .then(product => {
+        product.title = title;
+        product.price = price;
+        product.imageUrl = imageUrl;
+        product.description = description;
+        return product.save();
+      })
+      .then(result => {
+        res.status(200).json({ message: 'ok' })
+      })
+      .catch(err => res.status(400).json({ message: 'Not found product', errCode: 1}));
+  };
 
 }
 
