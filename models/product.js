@@ -16,6 +16,11 @@ const schema = new mongoose.Schema({
   description: {
     type: String,
     required: true
+  },
+  userId: { //create relationship with user
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'users', //get users in product model
+    required: true
   }
 }, { timestamps: true });
 

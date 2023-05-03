@@ -4,6 +4,7 @@ const cors = require('cors');
 
 const route = require('./routes');
 const connectMongodb = require('./util/database');
+const UserModel = require('./models/user');
 
 const app = express();
 const port = 5000;
@@ -13,22 +14,33 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(cors());
 
-// Middleware with user 
+// Middleware
 app.use((req, res, next) => {
-//   User.findByPk(1)
-//     .then(user => {
-//       req.user = user;
-//       next();
-//     })
-//     .catch(err => console.log(err))
-  next();
-});
+  UserModel.findById('64521673d499a41125798f57')
+    .then(user => {
+      req.user = user;
+      next();
+    })
+    .catch(err => console.log(err))
+})
 
 route(app);
 
 connectMongodb((cb) => {
-  // console.log('callback',cb);
   if(cb) {
+    UserModel.findOne().then(user => {
+      if(!user) {
+        const user = new UserModel({
+          name: 'Max',
+          email: 'test@test.com',
+          cart: {
+            items: []
+          }
+        });
+        user.save();
+      }
+    })
+
     app.listen(port, ()=> {
       console.log(`Server is running on port ${port}`);
     });
