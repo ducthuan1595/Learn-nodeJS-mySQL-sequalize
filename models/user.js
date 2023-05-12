@@ -2,7 +2,7 @@ const { ObjectId } = require("mongodb");
 const mongoose = require("mongoose");
 
 const schema = new mongoose.Schema({
-  name: {
+  password: {
     type: String,
     required: true,
   },
