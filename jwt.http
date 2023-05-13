@@ -1,0 +1,12 @@
+GET  http://localhost:5000/
+
+token: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3RAMSIsImlhdCI6MTY4Mzk5NTU0MSwiZXhwIjoxNjgzOTk1NjAxfQ.X6Dp8o3tvxm-NuTIMvrYMclotblrUijzJX-bSP2hDxQ
+###
+
+POST http://localhost:5000/login
+Content-Type: application/json
+
+{
+  "email": "test@1",
+  "password": "1"
+}
