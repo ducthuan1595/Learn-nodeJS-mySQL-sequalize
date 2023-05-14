@@ -23,7 +23,8 @@ app.use(cors());
 
 // Middleware
 app.use((req, res, next) => {
-  UserModel.findOne(req.user)
+  console.log(req.user);
+  UserModel.findOne(req.user?.email)
     .then(user => {
       req.user = user;
       next();

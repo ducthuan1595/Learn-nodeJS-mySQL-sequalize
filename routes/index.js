@@ -7,8 +7,8 @@ const authorization = require('../auth/auth');
 const router = express.Router();
 
 const route = (app) => {
-  router.get('/', authorization.authToken, productController.getProducts);
-  router.post('/', productController.postAddProduct);
+  router.get('/', productController.getProducts);
+  router.post('/', authorization.authToken, productController.postAddProduct);
   router.get('/detail/:id', productController.getDetailProduct);
   router.get('/get-edit/:id', authorization.authToken, productController.getEditProduct);
   router.post('/edit/:id', authorization.authToken, productController.editProduct);
@@ -23,8 +23,8 @@ const route = (app) => {
 
   router.post('/signup', userController.signup);
   router.post('/login', userController.login);
-  router.post('/refresh-token', userController.refreshTokens);
-  router.post('/logout', userController.logout);
+  router.get('/refresh-token', userController.refreshTokens);
+  router.post('/logout', authorization.authToken, userController.logout);
 
   return app.use('/', router);
 }

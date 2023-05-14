@@ -1,10 +1,11 @@
 const UserModel = require("../models/user");
+const TokenModel = require("../models/token");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv");
 
 dotenv.config();
-let refreshTokens = [];
+// let refreshTokens = [];
 
 class User {
   signup(req, res) {
@@ -49,20 +50,25 @@ class User {
           const token = jwt.sign(
             { email: email },
             process.env.ACCESS_TOKEN_SECRET,
-            { expiresIn: "60s" }
+            { expiresIn: "10s" }
           );
           const refreshToken = jwt.sign(
             { email: email },
             process.env.ACCESS_REFRESH_TOKEN,
             { expiresIn: "30d" }
           );
-          refreshTokens.push(refreshToken);
-          res.cookie("refreshToken", refreshToken, {
-            httpOnly: true,
-            secure: false, //deploy to true
-            sameSite: "strict",
+          const refreshTokens = new TokenModel({
+            refreshToken: refreshToken,
           });
-          return res.status(200).json({ message: "ok", email, token });
+          refreshTokens.save();
+          // res.cookie("refreshToken", refreshToken, {
+          //   httpOnly: true,
+          //   secure: false, //deploy to true
+          //   sameSite: "strict",
+          // });
+          return res
+            .status(200)
+            .json({ message: "ok", email, token, refreshToken });
         }
         res.status(400).json({ message: "Information invalid." });
       })
@@ -70,48 +76,61 @@ class User {
   }
 
   refreshTokens(req, res) {
-    const refreshTokenFormCookie = req.headers?.cookie.split(";")[0];
-    if (!refreshTokenFormCookie)
+    const token = req.headers["authorization"].split(" ")[1];
+    if (!token) {
       return res.status(401).json("You are not authentication");
-    else if (!refreshTokens.includes(refreshTokenFormCookie)) {
-      return res.status(403).json("Refresh token is not valid");
-    } else {
-      jwt.verify(
-        refreshTokenFormCookie,
-        process.env.ACCESS_REFRESH_TOKEN,
-        (err, user) => {
+    }
+    TokenModel.find()
+      .then((tokens) => {
+        const isToken = tokens.some((item) => item.refreshToken === token);
+        if(!isToken) return res.status(401).json("Token is not valid");
+        return tokens;
+      })
+      .then((tokens) => {
+        jwt.verify(token, process.env.ACCESS_REFRESH_TOKEN, (err, user) => {
           if (err) return console.log(err);
-          refreshTokens = refreshTokens.filter(
-            (token) => token !== refreshTokenFormCookie
-          );
+          const newArr = tokens.filter((item) => item === token);
+          TokenModel.findOneAndDelete(newArr);
+          console.log('ok');
           // create new token and refresh token
           const newToken = jwt.sign(
             { email: user.email },
             process.env.ACCESS_TOKEN_SECRET,
-            { expiresIn: "30s" }
+            { expiresIn: "10s" }
           );
           const newRefreshToken = jwt.sign(
             { email: user.email },
             process.env.ACCESS_REFRESH_TOKEN,
             { expiresIn: "30d" }
           );
-          refreshTokens.push(newRefreshToken);
-          res.cookie("refreshToken", newRefreshToken, {
-            httpOnly: true,
-            secure: false, //deploy to true
-            sameSite: "strict",
+          console.log('new-token', newToken);
+          const refreshTokens = new TokenModel({
+            refreshToken: newRefreshToken,
           });
-          res.status(200).json({ token: newToken });
-        }
-      );
-    }
+          refreshTokens.save();
+          // res.cookie("refreshToken", newRefreshToken, {
+          //   httpOnly: true,
+          //   secure: false, //deploy to true
+          //   sameSite: "strict",
+          // });
+          res.status(200).json({
+            message: "ok",
+            email: user.email,
+            token: newToken,
+            refreshToken: newRefreshToken,
+          });
+        });
+      })
+      .catch((err) => {
+        return res.status(401).json(err);
+      });
   }
 
   logout(req, res) {
+    const refreshToken = req.headers;
+    // console.log(refreshToken);
     res.clearCookie("refreshToken");
-    refreshTokens = refreshTokens.filter(
-      (token) => token !== req.cookies.refreshToken
-    );
+    refreshTokens = refreshTokens.filter((token) => token !== refreshToken);
     res.status(200).json("ok");
   }
 }

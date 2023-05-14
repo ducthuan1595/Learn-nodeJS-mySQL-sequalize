@@ -20,6 +20,7 @@ const ProductModel = require('../models/product');
 
 exports.addProductCart = (req, res) => {
   const productId = req.body.id;
+  console.log('req/user', req.user.addToCart);
   ProductModel.findById(productId)
     .then(product => {
       return req.user.addToCart(product); //addToCart() get into User model
@@ -85,6 +86,7 @@ exports.getOrders = (req, res) => {
 };
 
 exports.postOrder = (req, res) => {
+  console.log(req.user);
   req.user.populate('cart.items.productId')
     .then(user => {
       const products = user.cart.items.map(item => {

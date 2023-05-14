@@ -6,9 +6,9 @@ dotenv.config();
 class Authorization {
 
   authToken(req, res, next) {
-    const authorization = req.headers.token;
-    const token = authorization.split(' ')[1];
-    console.log(token);
+    const authorization = req.headers['authorization'];
+    // console.log('headers', req.headers);
+    const token = authorization?.split(' ')[1];  
     if (!token) res.status(401).json("You're not authenticated");
     else {
       jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, data) => {
