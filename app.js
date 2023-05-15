@@ -11,11 +11,11 @@ const app = express();
 dotenv.config();
 const port = process.env.ACCESS_URL;
 
-app.use(session({
-  secret: 'my secret',
-  resave: false,
-  saveUninitialized: true,
-}))
+// app.use(session({
+//   secret: 'my secret',
+//   resave: false,
+//   saveUninitialized: true,
+// }))
 app.use(bodyParser.urlencoded({ extended: true }));
 // app.use(express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.json());
@@ -23,8 +23,7 @@ app.use(cors());
 
 // Middleware
 app.use((req, res, next) => {
-  console.log(req.user);
-  UserModel.findOne(req.user?.email)
+  UserModel.findOne(req.user)
     .then(user => {
       req.user = user;
       next();

@@ -13,9 +13,9 @@ class Authorization {
     else {
       jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, data) => {
         if(err) {
-          res.status(403).json('Token is not valid')
+          res.status(403).json({ message: 'Token is not valid' })
         }else {
-          req.user = data;
+          // req.user = data;
           next();
         }
 

@@ -20,12 +20,12 @@ const ProductModel = require('../models/product');
 
 exports.addProductCart = (req, res) => {
   const productId = req.body.id;
-  console.log('req/user', req.user.addToCart);
+  console.log('user', req.user);
   ProductModel.findById(productId)
-    .then(product => {
-      return req.user.addToCart(product); //addToCart() get into User model
-    })
-    .then((result)=> {
+  .then(product => {
+    return req.user.addToCart(product);
+  })
+  .then((result)=> {
       res.status(200).json({
         message: 'ok',
         result: result

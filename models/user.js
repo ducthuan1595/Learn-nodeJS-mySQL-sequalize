@@ -26,7 +26,6 @@ const schema = new mongoose.Schema({
 
 //create methods with schema
 schema.methods.addToCart = function (product) {
-  console.log('ok', product);
   const cartProductIndex = this.cart.items.findIndex((item) => {
     return item.productId.toString() === product._id.toString();
   });

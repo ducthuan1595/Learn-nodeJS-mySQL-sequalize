@@ -24,7 +24,7 @@ const route = (app) => {
   router.post('/signup', userController.signup);
   router.post('/login', userController.login);
   router.get('/refresh-token', userController.refreshTokens);
-  router.post('/logout', authorization.authToken, userController.logout);
+  router.post('/logout', userController.logout);
 
   return app.use('/', router);
 }
