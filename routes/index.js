@@ -1,4 +1,6 @@
 const express = require('express');
+const { check, body } = require('express-validator');
+
 const productController = require('../controllers/productController');
 const cartController = require('../controllers/cartController');
 const userController = require('../controllers/userController');
@@ -21,8 +23,8 @@ const route = (app) => {
   router.get('/get-orders', authorization.authToken, cartController.getOrders);
   router.post('/post-order', authorization.authToken, cartController.postOrder);
 
-  router.post('/signup', userController.signup);
-  router.post('/login', userController.login);
+  router.post('/signup', [check('email').isEmail().notEmpty().escape(), body('password').isLength({min: 9})] , userController.signup);
+  router.post('/login', check('email').isEmail().notEmpty().escape(), userController.login);
   router.get('/refresh-token', userController.refreshTokens);
   router.post('/logout', userController.logout);
 

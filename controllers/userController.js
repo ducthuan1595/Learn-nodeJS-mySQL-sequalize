@@ -1,9 +1,10 @@
 const UserModel = require("../models/user");
 const TokenModel = require("../models/token");
-const sendEmail = require("../auth/nodemail");
+const sendMailer = require("../auth/nodemail");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv");
+const { query, validationResult } = require('express-validator');
 
 dotenv.config();
 // let refreshTokens = [];
@@ -12,6 +13,10 @@ class User {
   signup(req, res) {
     const email = req.body.email;
     const password = req.body.password;
+    const error = validationResult(req);
+    if(!error.isEmpty()) {
+      return res.status(422).json({message : error.array()[0]});
+    }
     UserModel.find()
       .then((users) => {
         const isEmail = users.some((user) => user.email === email);
@@ -19,9 +24,11 @@ class User {
       })
       .then((isEmail) => {
         if (isEmail) {
-          sendEmail(email);
           return res.status(200).json({ message: "Email already used." });
         }
+        sendMailer(email, () => {
+          console.log('send email success')
+        });
         return bcrypt
           .hash(password, 12)
           .then((pw) => {
@@ -43,9 +50,11 @@ class User {
     const password = req.body.password;
     UserModel.findOne({ email: email })
       .then((user) => {
-        if (!user) res.status(404).json({ message: "Not found user!" });
-        const validPs = bcrypt.compare(password, user.password);
-        return validPs;
+        if (!user) throw "Not found user!";
+        else {
+          const validPs = bcrypt.compare(password, user.password);
+          return validPs;
+        }
       })
       .then((isValid) => {
         if (isValid) {
@@ -71,7 +80,7 @@ class User {
           return res
             .status(200)
             .json({ message: "ok", email, token, refreshToken });
-        }else {
+        } else {
           res.status(400).json({ message: "Information invalid." });
         }
       })
@@ -86,7 +95,8 @@ class User {
     TokenModel.find()
       .then((tokens) => {
         const isToken = tokens.some((item) => item.refreshToken === token);
-        if (!isToken) return res.status(401).json({ message: "Token is not valid" });
+        if (!isToken)
+          return res.status(401).json({ message: "Token is not valid" });
         return tokens;
       })
       .then((tokens) => {
@@ -97,8 +107,7 @@ class User {
           );
           TokenModel.findOneAndRemove({
             refreshToken: filterToken[0].refreshToken,
-          })
-          .then(() => {
+          }).then(() => {
             // create new token and refresh token
             const newToken = jwt.sign(
               { email: user.email },
@@ -120,7 +129,7 @@ class User {
               token: newToken,
               refreshToken: newRefreshToken,
             });
-          })
+          });
           // res.cookie("refreshToken", newRefreshToken, {
           //   httpOnly: true,
           //   secure: false, //deploy to true
