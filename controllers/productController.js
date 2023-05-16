@@ -1,4 +1,5 @@
 const ProductModel = require('../models/product');
+const { validationResult } = require('express-validator');
 
 class ProductController {
 
@@ -41,12 +42,16 @@ class ProductController {
     const price = req.body.price;
     const imageUrl = req.body.imageUrl;
     const description = req.body.description;
+    const error = validationResult(req);
+    if(!error.isEmpty()) {
+      return res.status(422).json({message : error.array()[0]});
+    }
     const product = new ProductModel({
       title: title,
       price: price,
       imageUrl: imageUrl,
       description: description,
-      userId: req.user
+      userId: req.user._id
     })
     product.save()
     .then(result => {
@@ -99,7 +104,11 @@ class ProductController {
     const price = req.body.price;
     const imageUrl = req.body.imageUrl;
     const description = req.body.description;
-    // console.log('post-edit', productId)
+    console.log('edit-product', title);
+    const error = validationResult(req);
+    if(!error.isEmpty()) {
+      return res.status(422).json({message : error.array()[0]});
+    }
     ProductModel.findById(productId)
       .then(product => {
         product.title = title;
