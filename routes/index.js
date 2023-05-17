@@ -12,13 +12,13 @@ const route = (app) => {
   router.get("/", productController.getProducts);
   router.post(
     "/",
-    [
-      body("title").isLength({ min: 3 }).trim(),
-      body('imageUrl').isURL(),
-      body("price").isNumeric(),
-      body("description").isLength({ min: 5 }),
-    ],
-    authorization.authToken,
+    // [
+    //   body("title").isLength({ min: 3 }).trim(),
+    //   body('imageUrl'),
+    //   body("price").isFloat(),
+    //   body("description").isLength({ min: 5 }),
+    // ],
+    // authorization.authToken,
     productController.postAddProduct
   );
   router.get("/detail/:id", productController.getDetailProduct);
@@ -31,7 +31,7 @@ const route = (app) => {
     "/edit/:id",
     [
       body("title").isLength({ min: 3 }).trim(),
-      body('imageUrl').isURL(),
+      body('imageUrl'),
       body("price").isNumeric(),
       body("description").isLength({ min: 5 }),
     ],

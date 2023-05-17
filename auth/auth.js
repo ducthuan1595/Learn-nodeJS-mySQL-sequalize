@@ -15,7 +15,7 @@ class Authorization {
         if(err) {
           res.status(403).json({ message: 'Token is not valid' })
         }else {
-          // req.user = data;
+          // req.user = data.user;
           next();
         }
 

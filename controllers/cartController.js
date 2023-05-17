@@ -72,9 +72,10 @@ exports.deleteCart = (req, res) => {
 };
 
 exports.getOrders = (req, res) => {
+  console.log('curr-user', req.user);
   OrderModel.find({'user.userId': req.user._id})
     .then(orders => {
-      console.log('order', orders)
+      // console.log('order', orders)
       res.status(200).json({
         message: 'ok',
         orders: orders

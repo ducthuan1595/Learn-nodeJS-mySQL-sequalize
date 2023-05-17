@@ -1,5 +1,6 @@
 const ProductModel = require('../models/product');
 const { validationResult } = require('express-validator');
+const path = require('path');
 
 class ProductController {
 
@@ -37,11 +38,17 @@ class ProductController {
       });
   }
 
-  postAddProduct(req, res) {
+  postAddProduct(req, res, next) {
     const title = req.body.title;
     const price = req.body.price;
-    const imageUrl = req.body.imageUrl;
+    const imageUrl = req.files.imageUrl;
     const description = req.body.description;
+    // imageUrl.mv(__dirname + Date.now() + imageUrl.name, function(err) {
+    //   if (err)
+    //     return res.status(500).send(err);
+    
+    //   res.send('File uploaded!');
+    // });
     const error = validationResult(req);
     if(!error.isEmpty()) {
       return res.status(422).json({message : error.array()[0]});
@@ -49,7 +56,7 @@ class ProductController {
     const product = new ProductModel({
       title: title,
       price: price,
-      imageUrl: imageUrl,
+      imageUrl: imageUrl.data,
       description: description,
       userId: req.user._id
     })
@@ -62,6 +69,9 @@ class ProductController {
     })
     .catch(err => {
       console.log(err);
+      const error = new Error(err);
+      error.httpStatusCode = 500;
+      return next(error)
       res.status(404).json({
         message: 'Post product failure!'
       })
@@ -104,7 +114,6 @@ class ProductController {
     const price = req.body.price;
     const imageUrl = req.body.imageUrl;
     const description = req.body.description;
-    console.log('edit-product', title);
     const error = validationResult(req);
     if(!error.isEmpty()) {
       return res.status(422).json({message : error.array()[0]});

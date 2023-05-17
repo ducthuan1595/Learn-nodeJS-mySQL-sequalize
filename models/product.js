@@ -6,7 +6,7 @@ const schema = new mongoose.Schema({
     required: true
   },
   imageUrl: {
-    type: String,
+    type: Buffer,
     required: false
   },
   price: {

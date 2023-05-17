@@ -53,18 +53,24 @@ class User {
         if (!user) throw "Not found user!";
         else {
           const validPs = bcrypt.compare(password, user.password);
-          return validPs;
+          if(validPs){
+            req.user = user;
+            return user;
+          }else {
+            return false;
+          }
         }
       })
-      .then((isValid) => {
-        if (isValid) {
+      .then((user) => {
+        if (user) {
+          console.log('user-login', req.user);
           const token = jwt.sign(
-            { email: email },
+            { user: user },
             process.env.ACCESS_TOKEN_SECRET,
             { expiresIn: "5000s" }
           );
           const refreshToken = jwt.sign(
-            { email: email },
+            { user: user },
             process.env.ACCESS_REFRESH_TOKEN,
             { expiresIn: "30d" }
           );
@@ -79,12 +85,12 @@ class User {
           // });
           return res
             .status(200)
-            .json({ message: "ok", email, token, refreshToken });
+            .json({ message: "ok", user, token, refreshToken });
         } else {
           res.status(400).json({ message: "Information invalid." });
         }
       })
-      .catch((err) => res.status(400).json({ message: err }));
+      .catch((err) => res.status(401).json({ message: err }));
   }
 
   refreshTokens(req, res) {
