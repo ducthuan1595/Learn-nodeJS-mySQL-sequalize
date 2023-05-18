@@ -12,12 +12,12 @@ const route = (app) => {
   router.get("/", productController.getProducts);
   router.post(
     "/",
-    // [
-    //   body("title").isLength({ min: 3 }).trim(),
-    //   body('imageUrl'),
-    //   body("price").isFloat(),
-    //   body("description").isLength({ min: 5 }),
-    // ],
+    [
+      body("title").isLength({ min: 3 }).trim(),
+      body('imageUrl'),
+      body("price").isFloat(),
+      body("description").isLength({ min: 5 }),
+    ],
     // authorization.authToken,
     productController.postAddProduct
   );
@@ -58,6 +58,7 @@ const route = (app) => {
 
   router.get("/get-orders", authorization.authToken, cartController.getOrders);
   router.post("/post-order", authorization.authToken, cartController.postOrder);
+  router.get('/order/:orderId', cartController.getInvoice);
 
   router.post(
     "/signup",

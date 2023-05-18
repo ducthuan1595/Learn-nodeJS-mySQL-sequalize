@@ -1,22 +1,10 @@
 // const Cart = require('../models/cart');
+const path = require('path');
 const OrderModel = require('../models/order');
 const ProductModel = require('../models/product');
-
-// // exports.getProducts = (req, res, next) => {
-// //   Product.findAll()
-// //   .then((result) => {
-// //     res.status(200).json({
-// //       products: result,
-// //       message: 'ok'
-// //     });
-// //   })
-// //   .catch(err => {
-// //     console.log(err);
-// //     res.status(400).json({
-// //       message: 'Get All products failure!'
-// //     })
-// //   });
-// // };
+const fileHelp = require('../util/file');
+const fs = require('fs');
+const pdfkit = require('pdfkit');
 
 exports.addProductCart = (req, res) => {
   const productId = req.body.id;
@@ -75,7 +63,7 @@ exports.getOrders = (req, res) => {
   console.log('curr-user', req.user);
   OrderModel.find({'user.userId': req.user._id})
     .then(orders => {
-      // console.log('order', orders)
+      console.log('order', orders)
       res.status(200).json({
         message: 'ok',
         orders: orders
@@ -116,5 +104,42 @@ exports.postOrder = (req, res) => {
         message: err,
         errCode: 1
       })
+    });
+};
+
+exports.getInvoice = (req, res, next) => {
+  const orderId = req.params.orderId;
+  console.log('invoice-userId',req.user)
+  OrderModel.findById(orderId)
+  .then(order => {
+      console.log('order',order)
+      if(!order) return res.status(400).json({ message: 'Not found order!' });
+      if(order.user.userId.toString() !== req.user._id.toString()) {
+        return res.status(403).json({ message: 'Unauthorized'});
+      }
+      const invoiceName = 'invoice-' + orderId + '.pdf';
+      const invoicePath = path.join('datas', 'invoices', invoiceName);
+       res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', 'inline; filename="' + invoiceName + '"');
+      fileHelp.sendFile(res, order, invoicePath)
+      // const pdfDoc = new pdfkit();
+      // pdfDoc.pipe(fs.createWriteStream(invoicePath));
+      // pdfDoc.pipe(res);
+      // pdfDoc.text('hello world!');
+      // pdfDoc.end();
+      // fs.readFile(invoicePath, (err, data) => {
+      //   if(err) {
+      //     return next(err);
+      //   }
+      //   res.setHeader('Content-Type', 'application/pdf');
+      //   res.setHeader('Content-Disposition', 'inline; filename"' + invoiceName + '"'); ///inline to show invoice when click or attachment download file
+      //   res.send(JSON.stringify(data));
+      // });
+
+      // const file = fs.createReadStream(invoicePath);
+      // res.setHeader('Content-Type', 'application/pdf');
+      // res.setHeader('Content-Disposition', 'inline; filename="' + invoiceName + '"');
+      // file.pipe(JSON.stringify(res))
     })
-}
+    .catch(err => res.status(403).json({ message: 'Unauthorized '}))
+};

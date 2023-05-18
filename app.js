@@ -20,7 +20,7 @@ const port = process.env.ACCESS_URL;
 //   resave: false,
 //   saveUninitialized: true,
 // }))
-// app.use(express.static(path.join(__dirname, 'images')));
+app.use('/images', express.static(path.join(__dirname, 'images')));
 
 // const fileStorage = multer.diskStorage({
 //   destination: (req, file, cb) => {
