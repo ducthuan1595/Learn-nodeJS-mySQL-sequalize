@@ -4,7 +4,7 @@ const sendMailer = require("../auth/nodemail");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv");
-const { query, validationResult } = require('express-validator');
+const { query, validationResult } = require("express-validator");
 
 dotenv.config();
 // let refreshTokens = [];
@@ -14,8 +14,8 @@ class User {
     const email = req.body.email;
     const password = req.body.password;
     const error = validationResult(req);
-    if(!error.isEmpty()) {
-      return res.status(422).json({message : error.array()[0]});
+    if (!error.isEmpty()) {
+      return res.status(422).json({ message: error.array()[0] });
     }
     UserModel.find()
       .then((users) => {
@@ -27,7 +27,7 @@ class User {
           return res.status(200).json({ message: "Email already used." });
         }
         sendMailer(email, () => {
-          console.log('send email success')
+          console.log("send email success");
         });
         return bcrypt
           .hash(password, 12)
@@ -53,9 +53,9 @@ class User {
         if (!user) throw "Not found user!";
         else {
           const validPs = bcrypt.compare(password, user.password);
-          if(validPs){
+          if (validPs) {
             return user;
-          }else {
+          } else {
             return false;
           }
         }
@@ -65,7 +65,7 @@ class User {
           const token = jwt.sign(
             { user: user },
             process.env.ACCESS_TOKEN_SECRET,
-            { expiresIn: "6000s" }
+            { expiresIn: "60s" }
           );
           const refreshToken = jwt.sign(
             { user: user },
@@ -75,15 +75,9 @@ class User {
           const refreshTokens = new TokenModel({
             refreshToken: refreshToken,
           });
-          refreshTokens.save();
-          // res.cookie("refreshToken", refreshToken, {
-          //   httpOnly: true,
-          //   secure: false, //deploy to true
-          //   sameSite: "strict",
-          // });
-          return res
-            .status(200)
-            .json({ message: "ok", user, token, refreshToken });
+          refreshTokens.save().then(() => {
+            res.status(200).json({ message: "ok", user, token, refreshToken });
+          });
         } else {
           res.status(400).json({ message: "Information invalid." });
         }
@@ -99,8 +93,8 @@ class User {
     TokenModel.find()
       .then((tokens) => {
         const isToken = tokens.some((item) => item.refreshToken === token);
-        if (!isToken){
-          throw ('Token invalid!')
+        if (!isToken) {
+          throw "Token invalid!";
         }
         return tokens;
       })
@@ -109,15 +103,15 @@ class User {
           if (err) return console.log(err);
           const filterToken = tokens.filter(
             (item) => item.refreshToken === token
-            );
-            TokenModel.findOneAndRemove({
-              refreshToken: filterToken[0].refreshToken,
-            }).then(() => {
+          );
+          TokenModel.findOneAndRemove({
+            refreshToken: filterToken[0].refreshToken,
+          }).then(() => {
             // create new token and refresh token
             const newToken = jwt.sign(
               { user: user.user },
               process.env.ACCESS_TOKEN_SECRET,
-              { expiresIn: "6000s" }
+              { expiresIn: "60s" }
             );
             const newRefreshToken = jwt.sign(
               { user: user.user },
@@ -127,13 +121,17 @@ class User {
             const refreshTokens = new TokenModel({
               refreshToken: newRefreshToken,
             });
-            refreshTokens.save();
-            res.status(200).json({
-              message: "ok",
-              user: user.user,
-              token: newToken,
-              refreshToken: newRefreshToken,
-            });
+            refreshTokens
+              .save()
+              .then(() => {
+                res.status(200).json({
+                  message: "ok",
+                  user: user.user,
+                  token: newToken,
+                  refreshToken: newRefreshToken,
+                });
+              })
+              .catch((err) => res.status(500).json({ message: err }));
           });
           // res.cookie("refreshToken", newRefreshToken, {
           //   httpOnly: true,

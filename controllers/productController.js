@@ -7,20 +7,36 @@ const p = path.join('datas', 'images', 'image');
 
 class ProductController {
   getProducts(req, res) {
+    const page = +req.query.page || 1;
+    let totalNumber;
+    let itemPerPage = +req.query.itemPerPage || 8;
     ProductModel.find()
       //.select('title price - _id') //only get title and price omit _id
       //.populate('userId') //reference to user by userId into product model
-      .then((result) => {
-        // console.log('get-product', result)
+      //## Pagination with mongoose
+      .count()
+      .then(num => {
+        totalNumber = num;
+        return ProductModel.find()
+          .skip((page - 1) * itemPerPage)
+          .limit(itemPerPage)
+      })
+      .then((products) => {
         res.status(200).json({
-          products: result,
+          products: products,
+          prevPage: page - 1,
+          nextPage: page + 1,
+          totalProducts: totalNumber,
+          currentPage: page,
+          hasNextPage: itemPerPage * page < totalNumber,
+          hasPrevPage: page > 1,
+          lastPage: Math.ceil(totalNumber / itemPerPage),
           message: "ok",
         });
       })
       .catch((err) => {
-        console.log(err);
         res.status(400).json({
-          message: "Get All products failure!",
+          message: err,
         });
       });
   }
@@ -47,7 +63,7 @@ class ProductController {
     const description = req.body.description;
     imageUrl.mv(p + Date.now() + imageUrl.name, function (err) {
       if (err){
-        throw new Error(err)
+        throw new Error('Error upload file')
       }
       console.log('Upload success');
     });
@@ -87,15 +103,22 @@ class ProductController {
     .then((product) => {
       if (!product) return new Error("Not found product!");
       if(product.userId.toString() !== req.user._id.toString()) {
-        throw ('Unauthorized');
+        const error = new Error('Unauthorized');
+        error.statusCode = 403;
+        throw error;
       }
         product.deleteOne()
           .then((result) => {
             res.status(200).json({ message: "ok", result: result });
           })
-          .catch(err => res.status(403).json({ message: 'Unauthorized'}))
+          .catch(err => res.status(500).json({message: err}))
       })
-      .catch((err) => res.status(400).json({ message: err }));
+      .catch((err) => {
+        if(!err.statusCode) {
+          err.statusCode = 500;
+        }
+        res.status(err.statusCode).json({ message: err })
+      });
   }
 
   getEditProduct(req, res) {
