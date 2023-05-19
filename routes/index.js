@@ -18,7 +18,7 @@ const route = (app) => {
       body("price").isFloat(),
       body("description").isLength({ min: 5 }),
     ],
-    // authorization.authToken,
+    authorization.authToken,
     productController.postAddProduct
   );
   router.get("/detail/:id", productController.getDetailProduct);

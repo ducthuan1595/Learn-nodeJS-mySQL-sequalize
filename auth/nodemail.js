@@ -19,9 +19,9 @@ require("dotenv").config();
         const options = {
           from: '"Fred Foo 👻" <foo@example.com>', // sender address
           to: email, // list of receivers
-          subject: "Hello ✔", // Subject line
+          subject: "Hếlô ✔", // Subject line
           text: "Hello world?", // plain text body
-          html: "<b>You are a Fool?</b>", // html body
+          html: "<di><img src='https://media.makeameme.org/created/stupid-people-everywhere-awkmh6.jpg' /><hr></di><b>You are a Fool?</b></div>", // html body
         }
         const info = await transporter.sendMail(options)
         callback(info);

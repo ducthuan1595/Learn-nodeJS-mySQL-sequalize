@@ -54,7 +54,6 @@ class User {
         else {
           const validPs = bcrypt.compare(password, user.password);
           if(validPs){
-            req.user = user;
             return user;
           }else {
             return false;
@@ -63,11 +62,10 @@ class User {
       })
       .then((user) => {
         if (user) {
-          console.log('user-login', req.user);
           const token = jwt.sign(
             { user: user },
             process.env.ACCESS_TOKEN_SECRET,
-            { expiresIn: "5000s" }
+            { expiresIn: "6000s" }
           );
           const refreshToken = jwt.sign(
             { user: user },
@@ -101,8 +99,9 @@ class User {
     TokenModel.find()
       .then((tokens) => {
         const isToken = tokens.some((item) => item.refreshToken === token);
-        if (!isToken)
-          return res.status(401).json({ message: "Token is not valid" });
+        if (!isToken){
+          throw ('Token invalid!')
+        }
         return tokens;
       })
       .then((tokens) => {
@@ -110,18 +109,18 @@ class User {
           if (err) return console.log(err);
           const filterToken = tokens.filter(
             (item) => item.refreshToken === token
-          );
-          TokenModel.findOneAndRemove({
-            refreshToken: filterToken[0].refreshToken,
-          }).then(() => {
+            );
+            TokenModel.findOneAndRemove({
+              refreshToken: filterToken[0].refreshToken,
+            }).then(() => {
             // create new token and refresh token
             const newToken = jwt.sign(
-              { email: user.email },
+              { user: user.user },
               process.env.ACCESS_TOKEN_SECRET,
-              { expiresIn: "5000s" }
+              { expiresIn: "6000s" }
             );
             const newRefreshToken = jwt.sign(
-              { email: user.email },
+              { user: user.user },
               process.env.ACCESS_REFRESH_TOKEN,
               { expiresIn: "30d" }
             );
@@ -131,7 +130,7 @@ class User {
             refreshTokens.save();
             res.status(200).json({
               message: "ok",
-              email: user.email,
+              user: user.user,
               token: newToken,
               refreshToken: newRefreshToken,
             });
@@ -150,7 +149,6 @@ class User {
 
   logout(req, res) {
     const refreshToken = req.headers["authorization"].split(" ")[1];
-    console.log(refreshToken);
     // res.clearCookie("refreshToken");
     TokenModel.find()
       .then((tokens) => {

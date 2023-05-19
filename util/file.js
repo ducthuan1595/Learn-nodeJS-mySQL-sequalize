@@ -13,6 +13,7 @@ exports.deleteFile = (filePath) => {
 
 exports.sendFile = (res, order, invoicePath) => {
   const pdfDoc = new pdfkit();
+  console.log('PDF');
   pdfDoc.pipe(fs.createWriteStream(invoicePath));
   pdfDoc.pipe(res);
   
@@ -34,6 +35,6 @@ exports.sendFile = (res, order, invoicePath) => {
       );
   });
   pdfDoc.text("----");
-  pdfDoc.fontSize(22).text(total.toFixed(2));
+  pdfDoc.fontSize(22).text('Total: ' + total.toFixed(2));
   pdfDoc.end();
 };

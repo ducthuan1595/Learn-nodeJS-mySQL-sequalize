@@ -83,16 +83,17 @@ class ProductController {
 
   deleteProduct(req, res) {
     const id = req.body.id;
-    console.log('id-delete', id)
     ProductModel.findById(id)
-      .then((product) => {
-        if (!product) return new Error("Not found product!");
-        // console.log('ok', fileHelp.deleteFile());
-        // fileHelp.deleteFile(product.imageUrl);
-        return ProductModel.findByIdAndDelete(id);
-      })
-      .then((result) => {
-        res.status(200).json({ message: "ok" });
+    .then((product) => {
+      if (!product) return new Error("Not found product!");
+      if(product.userId.toString() !== req.user._id.toString()) {
+        throw ('Unauthorized');
+      }
+        product.deleteOne()
+          .then((result) => {
+            res.status(200).json({ message: "ok", result: result });
+          })
+          .catch(err => res.status(403).json({ message: 'Unauthorized'}))
       })
       .catch((err) => res.status(400).json({ message: err }));
   }

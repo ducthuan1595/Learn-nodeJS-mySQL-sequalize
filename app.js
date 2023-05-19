@@ -9,6 +9,7 @@ const UserModel = require('./models/user');
 const multer = require('multer');
 const path = require('path');
 const fileUpload = require('express-fileupload');
+// const authorization = require('./auth/auth');
 
 
 const app = express();
@@ -48,15 +49,15 @@ app.use(bodyParser.json());
 app.use(cors());
 
 // Middleware
-app.use((req, res, next) => {
-  console.log('user-curr-app', req.user);
-  UserModel.findOne(req.user)
-    .then(user => {
-      req.user = user;
-      next();
-    })
-    .catch(err => console.log(err))
-})
+// app.use(authorization.authToken, (req, res, next) => {
+//   console.log('user-curr-app', req.user);
+//   UserModel.findOne(req.user)
+//     .then(user => {
+//       req.user = user;
+//       next();
+//     })
+//     .catch(err => console.log(err))
+// })
 
 route(app);
 
